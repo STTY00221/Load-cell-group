@@ -1,0 +1,48 @@
+#include <Wire.h>                // สำหรับการเชื่อมต่อ I2C
+#include <LiquidCrystal_I2C.h>   // ไลบรารีสำหรับจอ LCD I2C
+#include "HX711.h"               // ไลบรารีสำหรับ HX711
+
+// กำหนดขาของ HX711
+#define DOUT  3
+#define CLK  2
+
+// สร้างออบเจ็กต์ของ HX711 และ LCD
+HX711 scale;
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // กำหนดที่อยู่ของ I2C 0x27 สำหรับจอ LCD 16x2
+
+void setup() {
+  // เริ่มต้นการเชื่อมต่อ Serial Monitor
+  Serial.begin(9600);
+  
+  // เริ่มต้นการเชื่อมต่อกับจอ LCD
+  lcd.begin();
+  lcd.backlight();  // เปิดไฟหลังจอ LCD
+  
+  // เริ่มต้นการเชื่อมต่อกับ Load Cell
+  scale.begin(DOUT, CLK);
+  
+  // การปรับค่า zero factor (ปรับตามความต้องการ)
+  scale.set_scale();
+  scale.tare();  // รีเซ็ตน้ำหนักเป็น 0
+  
+  lcd.setCursor(0, 0);
+  lcd.print("Weight Scale");
+}
+
+void loop() {
+  // อ่านน้ำหนักจาก Load Cell
+  float weight = scale.get_units(10);  // อ่านค่าเฉลี่ย 10 ครั้ง
+  
+  // แสดงค่าน้ำหนักบน Serial Monitor
+  Serial.print("Weight: ");
+  Serial.print(weight);
+  Serial.println(" kg");
+  
+  // แสดงค่าน้ำหนักบนจอ LCD
+  lcd.setCursor(0, 1);  // แสดงที่บรรทัดที่ 2
+  lcd.print("Weight: ");
+  lcd.print(weight);
+  lcd.print(" kg");
+  
+  delay(500);  // หน่วงเวลา 500ms ก่อนอ่านค่าใหม่
+}
